@@ -3,7 +3,7 @@ clc
 tic;
 % total weight
 W = (100 + 3)*9.81;
-%C = 3*1260*V; % volume from solidworks
+%C = 3*1260*V; % mass from solidworks
 L = W/4; % load on one wheel
 
 % Latin Hypercube Sampling
@@ -61,7 +61,7 @@ a = Input(:,3);
 fillet = Input(:,4);
 
 % Outputs taken from the Solidworks simulation 
-% VMS(N/m^2) Diplacement(mm) strain volume(mm3)
+% VMS(N/m^2) Diplacement(mm) strain mass(mm3)
 Output = [
     919000  0.0043  0.00030 0.404
     2540000 0.0094  0.00080 0.134
@@ -102,7 +102,7 @@ Output = [
 
 VMS = Output(:,1);
 Displacement = Output(:,2);
-volume = Output(:,4);
+mass = Output(:,4);
 
 %Shuffling the Dataset with random seed
 rng(1);                                 % MATLAB random seed 1
@@ -132,7 +132,7 @@ Output_NewTestT = Output_newTest1';
 beta = mvregress(Input_NewTrainT, Output_NewTrainT);
 betaVMS = beta(:,1);
 betaD = beta(:,2);
-betavolume = beta(:,4);
+betamass = beta(:,4);
 
 % Try linear regression model
 input_set = [Input_newTrain1,Input_newTest1]'
@@ -140,8 +140,8 @@ width_new = input_set(:,1);
 diameter_new = input_set(:,2);
 angle_new = input_set(:,3);
 fillet_new = input_set(:,4);
-volume_coloumn = [Output_newTrain1(4,:),Output_newTest1(4,:)]'
-tbl = table(width_new,diameter_new,angle_new,fillet_new,volume_coloumn);
+mass_coloumn = [Output_newTrain1(4,:),Output_newTest1(4,:)]'
+tbl = table(width_new,diameter_new,angle_new,fillet_new,mass_coloumn);
 linear_mdl = fitlm(tbl);
 linear_r2 = linear_mdl.Rsquared.Adjusted
 
@@ -153,22 +153,22 @@ plotResiduals(linear_mdl,'fitted')
 
 % calculate R square values
 Rsq = 1 - norm(Input_newTest1'*beta - Output_newTest1')^2/norm(Output_newTest1-mean(Input_newTest1))^2;
-
 RsqVMS = 1 - norm(Input_NewTestT*betaVMS - Output_NewTestT(:,1))^2/norm(Output_newTest1(1,:)-mean(Input_newTest1))^2;
 RsqD = 1 - norm(Input_NewTestT*betaD - Output_NewTestT(:,2))^2/norm(Output_newTest1(2,:)-mean(Input_newTest1))^2;
-Rsqvolume = 1 - norm(Input_NewTestT*betavolume - Output_NewTestT(:,4))^2/norm(Output_newTest1(4,:)-mean(Input_newTest1))^2;
+Rsqmass = 1 - norm(Input_NewTestT*betamass - Output_NewTestT(:,4))^2/norm(Output_newTest1(4,:)-mean(Input_newTest1))^2;
 
 % Use Ploynomial fit, with dimension of 2
-p1 = polyfitn(Input,volume,2)
-% Show the polynomial model of input - volume
-polymodel_volume = polyn2sym(p1)
+p1 = polyfitn(Input,mass,2)
 
+% Show the polynomial model of input - mass
+polymodel_mass = polyn2sym(p1)
 
+% nonlinear inequality constraint
 nonlcon = @confuneq;
-functionOptim = matlabFunction(polymodel_volume);
+functionOptim = matlabFunction(polymodel_mass);
 fun = @(x)x(1).*(-4.869416919044358e-3)-x(2).*3.929727471190939e-3+x(3).*5.384406971021096e-3+x(4).*2.133033657937706e-3+x(1).*x(2).*1.228056204384904e-4+x(1).*x(3).*5.373586540637725e-6-x(1).*x(4).*1.994084757325977e-5-x(2).*x(3).*9.730643593782969e-5-x(2).*x(4).*1.307676644403529e-5-x(3).*x(4).*7.523676947936464e-5+x(1).^2.*1.293309260264071e-6+x(2).^2.*2.592786129390755e-5-x(3).^2.*8.713404546934495e-6-x(4).^2.*7.727204914222017e-5+1.420207691067759e-1;
 
-% fmincon
+% fmincon + sqp
 options = optimoptions(@fmincon,'Algorithm','sqp');
 x1 = [33.61   99.25   9.48   6.32];
 x2 = [69.85   82.16   6.81   7.26];
@@ -187,11 +187,6 @@ original1 = polyvaln(p1,x1)
 
 x_ga1 = ga(fun,4,[],[],[],[],[30 47 0 0], [70 100 24.23 8],nonlcon)
 
-%annelx1= [ 49.47   96.02   8.72   5.31]
-%[a,fvala,exitFlaga,outputa] = simulannealbnd(fun,annelx1,[30 47 0 0], [70 100 24.23 8])
-%[b,fvalb,exitFlagb,outputb] = simulannealbnd(fun,x2,[30 47 0 0], [70 100 24.23 8])
-%[c,fvalc,exitFlagc,outputc] = simulannealbnd(fun,x3,[30 47 0 0], [70 100 24.23 8]);
-%annealingout = [a;b;c]
 toc;
 
 function [c,ceq] = confuneq(x);
