@@ -13,3 +13,8 @@ This branch contains:
 * Non linear regression model - **nonlinearfunction.m**
 * Optimiser - **optimisfunction.m**
 * Data files - **Ply30.mat , Al30.mat, CF30.mat, ABS30.mat, PET30.mat, Input30.mat**
+
+# Subsystem 2: Wheel
+* Main Code file - **NewWheel.m**
+* Polynomial fitting needs **polyfitn.m**
+* Show polynomial model - **polyn2sym.m**
