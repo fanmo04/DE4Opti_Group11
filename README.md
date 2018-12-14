@@ -19,3 +19,8 @@ This branch contains:
 * Polynomial fitting needs **polyfitn.m**
 * Show polynomial model - **polyn2sym.m**
 * Exeution time: 7s
+
+# System
+This branch combines all the files needed for both subsystem
+Redundant trials of fitting models were removed
+The minised costs of both subsystems were combined to calculate the total minimised cost
