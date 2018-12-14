@@ -18,3 +18,4 @@ This branch contains:
 * Main Code file - **NewWheel.m**
 * Polynomial fitting needs **polyfitn.m**
 * Show polynomial model - **polyn2sym.m**
+* Exeution time: 7s
